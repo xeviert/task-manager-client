@@ -46,7 +46,7 @@ export const TaskColumn = ({ title, tasks, onTaskClick, onDelete }) => (
                   e.stopPropagation();
                   onDelete(task);
                 }}
-                sx={{ color: 'error.main', '&:hover': { bgcolor: 'error.light' } }}
+                sx={{ color: 'error.main', }}
               >
                 <DeleteIcon />
               </IconButton>
