@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useEffect, useState } from 'react';
 import {
   Typography,
@@ -9,6 +9,7 @@ import {
   Box,
   Button,
   Container,
+  Grid
 } from '@mui/material';
 import CreateTask from './modals/CreateTask';
 import TaskDetails from './modals/TaskDetails';
@@ -17,6 +18,7 @@ import { useSnackbar } from '../../utils/alert';
 import TasksApiServices from '../../services/tasks-api-services';
 import { TaskDescription } from '../../utils/helpers';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { TaskColumn } from './TasksColumn';
 
 interface Task {
   id: string;
@@ -94,6 +96,29 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
     }
   };
 
+  const filteredTasks = useMemo(() => {
+    const pending = [];
+    const inProgress = [];
+    const completed = [];
+
+    tasks.forEach(task => {
+      if (task.status === 'pending') {
+        pending.push(task);
+      } else if (task.status === 'in-progress') {
+        inProgress.push(task);
+      } else {
+        completed.push(task)
+      }
+    })
+    return {
+      pending,
+      inProgress,
+      completed
+    }
+  }, [tasks]);
+
+  const { pending: pendingTasks, inProgress: inProgressTasks, completed: completedTasks } = filteredTasks;
+
   return (
     <>
       {SnackbarComponent}
@@ -101,7 +126,7 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
         <Typography variant="h4" gutterBottom sx={{ textAlign: 'center' }}>
           Task List
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
           <Button
             variant="contained"
             color="primary"
@@ -119,37 +144,47 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
             + Task
           </Button>
         </Box>
-        <Box sx={{ width: '28%' }}>
-          <List>
-            {tasks.map((task) => (
-              <ListItem
-                key={task.id}
-                onClick={() => {
-                  setSelectedTask(task)
-                  setTaskDetails(true)
-                }}
-                sx={{ cursor: 'pointer', border: 'solid', borderWidth: 'thin', borderRadius: 2, mb: 2, }}
-              >
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ display: 'flex' }}>
-                    <ListItemText primary={task.title} secondary={`Status: ${task.status}`} />
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <DeleteIcon
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          setSelectedTask(task)
-                          setDeleteTask(true)
-                        }}
-                        aria-label="delete" sx={{ color: 'red' }}
-                      />
-                    </Box>
-                  </Box>
-                  <TaskDescription text={task.description} limit={50} />
-                </Box>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+
+        <Grid container spacing={3}>
+          <TaskColumn
+            title="Pending"
+            tasks={pendingTasks}
+            onTaskClick={(task) => {
+              setSelectedTask(task);
+              setTaskDetails(true);
+            }}
+            onDelete={(task) => {
+              setSelectedTask(task);
+              setDeleteTask(true);
+            }}
+          />
+
+          <TaskColumn
+            title="In Progress"
+            tasks={inProgressTasks}
+            onTaskClick={(task) => {
+              setSelectedTask(task);
+              setTaskDetails(true);
+            }}
+            onDelete={(task) => {
+              setSelectedTask(task);
+              setDeleteTask(true);
+            }}
+          />
+
+          <TaskColumn
+            title="Completed"
+            tasks={completedTasks}
+            onTaskClick={(task) => {
+              setSelectedTask(task);
+              setTaskDetails(true);
+            }}
+            onDelete={(task) => {
+              setSelectedTask(task);
+              setDeleteTask(true);
+            }}
+          />
+        </Grid>
 
         <CreateTask
           open={addTask}
