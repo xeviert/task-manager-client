@@ -35,7 +35,12 @@ const CreateTask = ({ open, onClose, handleSubmit }) => {
         <Typography variant="h6" gutterBottom>
           Add a New Task
         </Typography>
-        <form onSubmit={(e) => handleSubmit(e, newTaskTitle, newTaskDescription)}>
+        <form
+          onSubmit={(e) => {
+            handleSubmit(e, newTaskTitle, newTaskDescription)
+            setNewTaskTitle('')
+            setNewTaskDescription('')
+          }}>
           <Stack spacing={2}>
             <TextField
               label="Title"

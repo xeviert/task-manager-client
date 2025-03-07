@@ -1,4 +1,5 @@
 "use client";
+import React from 'react';
 import { useEffect, useState } from 'react';
 import {
   Typography,
@@ -9,22 +10,26 @@ import {
   Button,
   Container,
 } from '@mui/material';
-import CreateTask from './modals/createTask';
+import CreateTask from './modals/CreateTask';
 import TaskDetails from './modals/TaskDetails';
+import DeleteTask from './modals/DeleteTask';
 import { useSnackbar } from '../../utils/alert';
 import TasksApiServices from '../../services/tasks-api-services';
 import { TaskDescription } from '../../utils/helpers';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface Task {
   id: string;
   title: string;
   status: string;
+  description: string;
 }
 
 export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [addTask, setAddTask] = useState(false);
   const [taskDetails, setTaskDetails] = useState(false);
+  const [deleteTask, setDeleteTask] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const { handleOpenSnackbar, SnackbarComponent } = useSnackbar();
 
@@ -32,7 +37,7 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
     setTasks(initialTasks);
   }, [initialTasks]);
 
-  const handleSubmit = async (
+  const handleCreateTask = async (
     e: React.FormEvent<HTMLFormElement>,
     title: string,
     description: string
@@ -71,6 +76,24 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      await TasksApiServices.deleteTask(selectedTask.id);
+
+      setTasks((prevTasks) =>
+        prevTasks.filter((task) => task.id !== selectedTask.id)
+      );
+
+      console.log('Task deleted successfully');
+      handleOpenSnackbar('Task deleted successfully!', 'success');
+      setSelectedTask(null);
+      setDeleteTask(false)
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      handleOpenSnackbar('Failed to delete task!', 'error');
+    }
+  };
+
   return (
     <>
       {SnackbarComponent}
@@ -96,7 +119,7 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
             + Task
           </Button>
         </Box>
-        <Box sx={{ width: '40%' }}>
+        <Box sx={{ width: '28%' }}>
           <List>
             {tasks.map((task) => (
               <ListItem
@@ -106,9 +129,22 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
                   setTaskDetails(true)
                 }}
                 sx={{ cursor: 'pointer', border: 'solid', borderWidth: 'thin', borderRadius: 2, mb: 2, }}
-              ><Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <ListItemText primary={task.title} secondary={`Status: ${task.status}`} />
-                  <TaskDescription text={task.description} limit={100} />
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex' }}>
+                    <ListItemText primary={task.title} secondary={`Status: ${task.status}`} />
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <DeleteIcon
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setSelectedTask(task)
+                          setDeleteTask(true)
+                        }}
+                        aria-label="delete" sx={{ color: 'red' }}
+                      />
+                    </Box>
+                  </Box>
+                  <TaskDescription text={task.description} limit={50} />
                 </Box>
               </ListItem>
             ))}
@@ -118,7 +154,7 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
         <CreateTask
           open={addTask}
           onClose={() => setAddTask(false)}
-          handleSubmit={handleSubmit}
+          handleSubmit={handleCreateTask}
         />
         {selectedTask && (
           <TaskDetails
@@ -127,6 +163,17 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
             task={selectedTask}
             onSave={handleSaveEdits}
             openSnackbar={handleOpenSnackbar}
+          />
+        )}
+        {selectedTask && (
+          <DeleteTask
+            open={deleteTask}
+            onClose={() => {
+              setDeleteTask(false)
+              setSelectedTask(null)
+            }}
+            task={selectedTask}
+            handleDelete={handleDelete}
           />
         )}
       </Container>

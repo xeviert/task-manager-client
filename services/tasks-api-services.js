@@ -38,6 +38,17 @@ const TasksApiServices = {
 
     return response.json();
   },
+  async deleteTask(id) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete task: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
 };
 
 export default TasksApiServices;
