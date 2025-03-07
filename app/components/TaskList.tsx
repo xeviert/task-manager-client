@@ -124,7 +124,7 @@ export default function TaskList({ initialTasks }: { initialTasks: Task[] }) {
       {SnackbarComponent}
       <Container sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom sx={{ textAlign: 'center' }}>
-          Task List
+          Task Manager
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
           <Button
